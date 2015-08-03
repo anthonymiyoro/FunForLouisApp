@@ -2,10 +2,10 @@ package com.example.tony.funforlouis.dummy;
 
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
 import com.crashlytics.android.Crashlytics;
+import com.example.tony.funforlouis.R;
 import com.google.android.youtube.player.YouTubeApiServiceUtil;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 
