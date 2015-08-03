@@ -8,7 +8,6 @@ import com.google.android.youtube.player.YouTubeStandalonePlayer;
  */
 public class mainview {
 
-    startActivity(YouTubeStandalonePlayer.createVideoIntent(getActivity(),
-    DEVELOPER_KEY, video.id, 0, true, true));
+    startActivity(YouTubeStandalonePlayer.createVideoIntent(getActivity(),e9e4fecbf1dc41cb0ada6db79cddec98474f06cf, video.id, 0, true, true));
 
 }
