@@ -3,7 +3,7 @@ package com.example.tony.musicviewer;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 
-import com.eden.youtubesample.fragment.YouTubeFragment;
+import com.example.tony.musicviewer.fragment.YouTubeFragment;
 
 /**
  * A sample Activity hosting a YouTubeFragment. You could place the Fragment anywhere in the layout.
