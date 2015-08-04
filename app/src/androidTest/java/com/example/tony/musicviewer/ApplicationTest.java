@@ -1,4 +1,4 @@
-package com.example.tony.funforlouis;
+package com.example.tony.musicviewer;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
