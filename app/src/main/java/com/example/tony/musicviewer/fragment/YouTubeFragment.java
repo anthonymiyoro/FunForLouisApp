@@ -1,9 +1,9 @@
-package com.example.tony.musicviewer;
+package com.example.tony.musicviewer.fragment;
 
 import android.os.Bundle;
 import android.widget.Toast;
 
-import com.eden.youtubesample.R;
+import com.example.tony.musicviewer.R;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerSupportFragment;
