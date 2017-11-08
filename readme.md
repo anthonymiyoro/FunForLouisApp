@@ -19,6 +19,4 @@ A simple Hotel Booking Bot template running on Flask that's ready to run on Hero
 
 * `heroku create`
 
-* `heroku addons:create heroku-postgresql:hobby-dev`
-
 * `git push heroku master`
