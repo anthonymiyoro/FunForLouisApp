@@ -8,6 +8,7 @@ from config import CONFIG
 from fbmq import Attachment, Template, QuickReply, NotificationType
 from fbpage import page
 import requests
+from pprint import pprint
 
 
 USER_SEQ = {}
@@ -43,9 +44,9 @@ def received_message(event):
     recipient_id = event.recipient_id
     time_of_message = event.timestamp
     message = event.message
-    print("Received message for user %s and page %s at %s with message:"
-          % (sender_id, recipient_id, time_of_message))
-    print(message)
+    # print("Received message for user %s and page %s at %s with message:"
+    #       % (sender_id, recipient_id, time_of_message))
+    pprint(message)
 
     seq = message.get("seq", 0)
     message_id = message.get("mid")
@@ -55,6 +56,8 @@ def received_message(event):
     message_text = message.get("text")
     message_attachments = message.get("attachments")
     quick_reply = message.get("quick_reply")
+    # nlp = message['nlp']['entities']
+    nlp = message.get("nlp")
 
     seq_id = sender_id + ':' + recipient_id
     if USER_SEQ.get(seq_id, -1) >= seq:
@@ -78,14 +81,31 @@ def received_message(event):
 
         elif quick_reply_payload == 'CANCEL':
             show_branch(sender_id)
+
+        elif quick_reply_payload == "START_AGAIN":
+            show_hotel_room(sender_id)
         else:
             print("quick reply for message %s with payload %s" % (message_id, quick_reply_payload))
 
-    if message_text:
-        # send_message(sender_id, message_text)
-        echo_messege(sender_id)
+# Check for user sent greetings
+    elif nlp:
+        nlp_payload = nlp.get('entities')
+        if 'greetings' in nlp_payload:
+            nlp_greet = nlp_payload.get('greetings')
+            hello(sender_id)
+            pprint(nlp_greet)
+        # Check for different entities
+        # print("Exists")
+
+    # elif message_text:
+    #     # send_message(sender_id, message_text)
+    #     echo_messege(sender_id)
+
     elif message_attachments:
         page.send(sender_id, "Message with attachment received")
+
+    else:
+        print ("Nothing")
 
 
 @page.handle_delivery
@@ -106,7 +126,6 @@ def send_text_callback(payload, response):
 
 
 # Reacts to postback buttons NOT QuickReply
-# Add postback button payloads in if statements
 @page.handle_postback
 def received_postback(event):
     sender_id = event.sender_id
@@ -135,7 +154,7 @@ def received_postback(event):
         last_messege(sender_id)
 
     elif payload == "START_AGAIN":
-        show_hotel_room(sender_id)
+        show_branch(sender_id)
 
     print("Received postback for user %s and page %s with payload '%s' at %s"
           % (sender_id, recipient_id, payload, time_of_postback))
@@ -158,14 +177,6 @@ def send_message(recipient_id, text):
 
 
 def send_button(recipient):
-    """
-    Shortcuts are supported
-    page.send(recipient, Template.Buttons("hello", [
-        {'type': 'web_url', 'title': 'Open Web URL', 'value': 'https://www.oculus.com/en-us/rift/'},
-        {'type': 'postback', 'title': 'tigger Postback', 'value': 'DEVELOPED_DEFINED_PAYLOAD'},
-        {'type': 'phone_number', 'title': 'Call Phone Number', 'value': '+16505551234'},
-    ]))
-    """
     page.send(recipient, Template.Buttons("hello", [
         Template.ButtonWeb("Open Web URL", "https://www.oculus.com/en-us/rift/"),
         Template.ButtonPostBack("trigger Postback", "DEVELOPED_DEFINED_PAYLOAD"),
@@ -187,17 +198,20 @@ def send_welcome_messege(recipient, event):
     user_profile = page.get_user_profile(event.sender_id)  # return dict
     print(user_profile)
 
-    text = "Hello " + user_profile['first_name'] + "! Welcome to the Hotel Test Bot. \n Please choose a preferred hotel branch. 🙂"
-    page.send(recipient, text, metadata="DEVELOPER_DEFINED_METADATA")
-
+    text1 = "Hello " + user_profile['first_name'] + "!"
+    text2 = "Welcome to the Hotel Test Bot. We have a list of hotel branches below. Please choose one. 🙂"
+    page.send(recipient, text1, metadata="DEVELOPER_DEFINED_METADATA")
+    page.send(recipient, text2, metadata="DEVELOPER_DEFINED_METADATA")
 
 # Message displayed when selecting a room
 def select_room_message(recipient, event):
     user_profile = page.get_user_profile(event.sender_id)  # return dict
     print(user_profile)
 
-    text = "Good Choice " + user_profile['first_name'] + "! \n Please select your preferred room."
-    page.send(recipient, text, metadata="DEVELOPER_DEFINED_METADATA")
+    text1 = "Good Choice " + user_profile['first_name']
+    text2 = "Please select your preferred room."
+    page.send(recipient, text1, metadata="DEVELOPER_DEFINED_METADATA")
+    page.send(recipient, text2, metadata="DEVELOPER_DEFINED_METADATA")
 
 
 # Show different hotel branches
@@ -265,6 +279,7 @@ def show_hotel_room(recipient):
 
 # Reciept to show that items have been purchased
 def send_receipt(recipient):
+    text = "Here's your recipt 👇"
     receipt_id = "order1357"
     element = Template.ReceiptElement(title="Hotel Room",
                                       subtitle="Includes: Bed, Breakfast and Board",
@@ -279,7 +294,7 @@ def send_receipt(recipient):
                                       total_cost=78.99)
 
     adjustment = Template.ReceiptAdjustment(name="New Customer Discount", amount=-50)
-
+    page.send(recipient, text, metadata="DEVELOPER_DEFINED_METADATA")
     page.send(recipient, Template.Receipt(recipient_name='Peter Chang',
                                           order_number=receipt_id,
                                           currency='USD',
@@ -289,16 +304,21 @@ def send_receipt(recipient):
                                           # address=address,
                                           summary=summary,
                                           adjustments=[adjustment]))
+    page.send(recipient, "Would you like to continue?",
+              quick_replies=[QuickReply(title=("Book another room"), payload="BOOK_ANOTHER_ROOM"),
+                             QuickReply(title=("Start Again"), payload="START_AGAIN")],
+              metadata="DEVELOPER_DEFINED_METADATA")
 
 
 # Quick reply menu to book another room
 def book_another(recipient):
-    page.send(recipient, "Would you like to book another room? 🙂",
+    text = "Noted! "
+    page.send(recipient, text, metadata="DEVELOPER_DEFINED_METADATA")
+    page.send(recipient, "Would you like to book another room or would you like to continue? 🙂",
               quick_replies=[QuickReply(title=("Book another room"), payload="BOOK_ANOTHER_ROOM"),
                              QuickReply(title=("Cancel"), payload="CANCEL"),
                              QuickReply(title=("Continue with booking"), payload="RESERVATION")],
               metadata="DEVELOPER_DEFINED_METADATA")
-
 
 #Last messege after reciept has been shown
 def last_messege(recipient):
@@ -307,6 +327,15 @@ def last_messege(recipient):
                              QuickReply(title=("Cancel"), payload="CANCEL"),
                              QuickReply(title=("Start Again"), payload="START_AGAIN")],
               metadata="DEVELOPER_DEFINED_METADATA")
+
+
+def hello(recipient):
+    page.send(recipient, "Hi! 😄")
+    page.send(recipient, "Would you like to book a hotel room?",
+              quick_replies=[QuickReply(title=("Book a room"), payload="START_AGAIN"),
+                             ],
+              metadata="DEVELOPER_DEFINED_METADATA")
+
 
 
 def echo_messege(recipient):
